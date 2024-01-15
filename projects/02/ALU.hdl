@@ -27,19 +27,35 @@
 // if (no == 1) sets out = !out   // bitwise not
 
 CHIP ALU {
-    IN  
-        x[16], y[16],  // 16-bit inputs        
+    IN
+        x[16], y[16],  // 16-bit inputs
         zx, // zero the x input?
         nx, // negate the x input?
         zy, // zero the y input?
         ny, // negate the y input?
         f,  // compute (out = x + y) or (out = x & y)?
         no; // negate the out output?
-    OUT 
+    OUT
         out[16], // 16-bit output
         zr,      // if (out == 0) equals 1, else 0
         ng;      // if (out < 0)  equals 1, else 0
 
     PARTS:
-    //// Replace this comment with your code.
+    Mux16(a=x, b=false, sel=zx, out=xp); // if zx, set x to 0
+    Mux16(a=y, b=false, sel=zy, out=yp); // if zy, set y to 0
+    Not16(in=xp, out=nxp); // if nx, set x to !x
+    Not16(in=yp, out=nyp); // if ny, set y to !y
+    Mux16(a=xp, b=nxp, sel=nx, out=xpp); // if nx, set x to !x
+    Mux16(a=yp, b=nyp, sel=ny, out=ypp); // if ny, set y to !y
+    Add16(a=xpp, b=ypp, out=addout);
+    And16(a=xpp, b=ypp, out=andout);
+    Mux16(a=andout, b=addout, sel=f, out=fout);
+    Not16(in=fout, out=notout);
+    Mux16(a=fout, b=notout, sel=no, out=out, out[15]=ng, out[0..7]=zrl, out[8..15]=zrh);
+
+    // set flags
+    Or8Way(in=zrl, out=zrlor); // zr low half non-zero if any bit is 1
+    Or8Way(in=zrh, out=zrhor); // zr high half non-zero if any bit is 1
+    Or(a=zrlor, b=zrhor, out=nonzero); // nonzero is 1 if either half is non-zero
+    Not(in=nonzero, out=zr); // zr is 1 if nonzero is 0
 }
