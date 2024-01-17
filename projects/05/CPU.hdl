@@ -1,4 +1,4 @@
-// This file is part of www.nand2tetris.org
+// This file is part of www.nand3tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/05/CPU.hdl
@@ -27,10 +27,70 @@ CHIP CPU {
                          // the current program (reset==0).
 
     OUT outM[16],        // M value output
-        writeM,          // Write to M? 
+        writeM,          // Write to M?
         addressM[15],    // Address in data memory (of M)
         pc[15];          // Address of next instruction
 
     PARTS:
-    //// Replace this comment with your code.
+    // Instruction decoder
+    // if instruction[15] == 0, then instruction is A-instruction
+    // if instruction[15] == 1, then instruction is C-instruction
+    Not(in=instruction[15], out=instructionTypeA);
+    Not(in=instructionTypeA, out=instructionTypeC);
+
+    // if the instruction is c-type and the destination is register A
+    And(a=instructionTypeC, b=instruction[5], out=ALUtoAEnable);
+
+    Mux16(a=instruction, b=ALUout, sel=ALUtoAEnable, out=ARegisterIn);
+    Or(a=instructionTypeA, b=ALUtoAEnable, out=loadAEnable);
+    ARegister(in=ARegisterIn, load=loadAEnable, out=ARegisterOut);
+
+    // if the instruction is c-type and the destination is register D
+    And(a=instructionTypeC, b=instruction[4], out=ALUtoDEnable);
+    DRegister(in=ALUout, load=ALUtoDEnable, out=DRegisterOut);
+
+    // select whether to load the A register or incoming Memory into the destination
+    Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=AorMOut);
+
+    ALU(
+      x=DRegisterOut, y=AorMOut,
+      zx=instruction[11], nx=instruction[10],
+      zy=instruction[9], ny=instruction[8],
+      f=instruction[7], no=instruction[6],
+      out=ALUout, zr=zero, ng=negative
+    );
+
+    // filter out the a/c instruction flag
+    Or16(a=false, b=ARegisterOut, out[0..14]=addressM);
+
+    // rename the ALUout to outM
+    Or16(a=false, b=ALUout, out=outM);
+
+    // set writeM (the memory write enable signal)
+    And(a=instructionTypeC, b=instruction[3], out=writeM);
+
+    // Program Counter
+    // JEQ (Jump if Equal to zero)
+    And(a=zero, b=instruction[1], out=jeq);
+
+    // JGT (Jump if Greater Than zero)
+    Not(in=zero, out=notZero);
+    Not(in=negative, out=notNegative);
+    And(a=notZero, b=notNegative, out=positive);
+    And(a=positive, b=instruction[0], out=jgt);
+
+    // JLT (Jump if Less Than zero)
+    And(a=negative, b=instruction[2], out=jlt);
+
+    // Combining Jump Conditions
+    Or(a=jeq, b=jgt, out=jeqorjgt);
+    Or(a=jeqorjgt, b=jlt, out=jmp);
+
+    // Program Counter (PC) Logic
+    // if the instruction is a jump instruction
+    And(a=instructionTypeC, b=jmp, out=PCJumpEnable);
+    // otherwise, increment the PC
+    Not(in=PCJumpEnable, out=PCIncEnable);
+
+    PC(in=ARegisterOut, inc=PCIncEnable, load=PCJumpEnable, reset=reset, out[0..14]=pc);
 }
