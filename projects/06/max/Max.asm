@@ -16,13 +16,12 @@
    // Its R1
    @R1
    D=M
-   @R2
-   M=D
-   @END
+   @SET_RESULT
    0;JMP
 (ITSR0)
    @R0             
    D=M
+(SET_RESULT)
    @R2
    M=D
 (END)
