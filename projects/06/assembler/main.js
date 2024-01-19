@@ -3,36 +3,42 @@
 
 // takes the path to the asm file as the first argument
 
-// takes an optional second argument to specify the output file path
-// if no second argument is provided, the output file will be named
-// the same as the input file, but with a .hack extension instead of .asm
-// if the second argument is a directory, the output file will be named
-// the same as the input file, but with a .hack extension instead of .asm
-// and will be placed in the specified directory. If the second argument
-// has an extension, the output file will be named the same as the second
-// argument.
+// takes an optional second argument to specify the output
+// file path if no second argument is provided, the output
+// file will be named the same as the input file, but with a
+// .hack extension instead of .asm if the second argument is
+// a directory, the output file will be named the same as
+// the input file, but with a .hack extension instead of
+// .asm and will be placed in the specified directory. If
+// the second argument has an extension, the output file
+// will be named the same as the second argument. More
+// details are to be founf in comments in the relevant
+// section of the code.
 
-// if the input file is a directory, the assembler will attempt to
-// assemble all .asm files in the directory and output them to .hack
-// files in the same directory
+// if the input file is a directory, the assembler will
+// attempt to assemble all .asm files in the directory and
+// output them to .hack files in the same directory
 
-// also takes a third optional argument (a flag -s) to enable
-// the creation of a symbol table file (named the same as the output
-// file, but with a .sym extension instead of .hack), containing
-// the symbol table used to translate the assembly file.
+// also takes a third optional argument (a flag -s) to
+// enable the creation of a symbol table file (named the
+// same as the output file, but with a .sym extension
+// instead of .hack), containing the symbol table used to
+// translate the assembly file.
 
-// NOTE: I have ignored the advice of the nand2Tetris course and book
-// and have not built separate parse and code translation steps. The
-// assembly language is so simple that it's just not really necessary
-// and I'm not enough of a beginner to get a lot of value out of
-// building it that way as an exercise. The many suggested methods on
-// the parser seem pretty unnessecary to me, so I've just built a simple
-// straight-through parser that does the translation as it goes and does
-// the whole file in one pass. The symbol table init function does its
-// own pass through the file to build the symbol table, so it's still a
-// two-pass assembler, but the structure is a little diffenet than the
-// one suggested in the book. I also added the features mentioned above,
-// for no particular reason.
+// NOTE: I have ignored the advice of the nand2Tetris course
+// and book and have not built separate parse and code
+// translation steps. The assembly language is so simple
+// that it's just not really necessary and I'm not enough of
+// a beginner to get a lot of value out of building it that
+// way as an exercise. The many suggested methods on the
+// parser seem pretty unnessecary to me, so I've just built
+// a simple straight-through parser that does the
+// translation as it goes and does the whole file in one
+// pass. The symbol table init function does its own pass
+// through the file to build the symbol table, so it's still
+// a two-pass assembler, but the structure is a little
+// diffenet than the one suggested in the book. I also added
+// the features mentioned above, for no particular reason.
 
 const fs = require('fs');
 const path = require('path');
