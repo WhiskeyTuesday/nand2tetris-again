@@ -53,7 +53,7 @@ const parseArgs = (args) => {
   if (asms.length === 0) { throw new Error('No .asm files found'); }
 
   const outPath = (() => {
-    if (!args[1]) {
+    if (!args[1] || args[1].startsWith('-')) {
       return `${path.dirname(inPath)}/${path.basename(inPath, '.asm')}.hack`;
     }
 
@@ -68,7 +68,7 @@ const parseArgs = (args) => {
   return {
     inPath,
     outPath,
-    writeSymbols: args[2] === '-s',
+    writeSymbols: args[2] === '-s' || args[1] === '-s',
     files: asms,
   };
 };

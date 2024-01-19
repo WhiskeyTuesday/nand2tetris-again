@@ -38,5 +38,12 @@ module.exports = {
     }
   },
 
-  print: () => JSON.stringify(table, null, 2),
+  print: () => JSON.stringify(
+    Array.from(table).reduce((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {}),
+    null,
+    2,
+  ),
 };
