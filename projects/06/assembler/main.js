@@ -56,7 +56,9 @@ const parseArgs = (args) => {
 
   const outPath = (() => {
     if (!args[1] || args[1].startsWith('-')) {
-      return `${path.dirname(inPath)}/${path.basename(inPath, '.asm')}.hack`;
+      const dirname = path.dirname(inPath);
+      const basename = path.basename(inPath, '.asm');
+      return path.resolve(`${dirname}/${basename}.hack`);
     }
 
     const ext = path.extname(args[1]) || '.hack';
@@ -82,9 +84,12 @@ const parseArgs = (args) => {
       // if the arg points to a dir (no '.') that doesn't
       // exist we should create it but since I happen to
       // know (or think I know anyway) that node doesn't
-      // have a convenient equivalent to mkdir -p, I'm just
-      // going to throw an error.
-      throw new Error('invalid output path');
+      // have a convenient equivalent to mkdir -p... so I'm
+      // going to interpret it as a file name and create the
+      // file in the input file's directory, with the
+      // specified name, and .hack extension
+      const inDir = path.dirname(inPath);
+      return path.resolve(`${inDir}/${basename}.hack`);
     }
   })();
 
