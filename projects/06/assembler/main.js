@@ -47,6 +47,8 @@ if (args.length > 3) { throw new Error('Too many arguments'); }
 
 const parseArgs = (args) => {
   const inPath = path.resolve(args[0]);
+  const exists = fs.existsSync(inPath);
+  if (!exists) { throw new Error('Input file does not exist'); }
   const isDir = fs.lstatSync(inPath).isDirectory();
   const files = isDir ? asms(fs.readdirSync(inPath)) : [inPath];
   const asms = files.filter((file) => path.extname(file) === '.asm');
@@ -58,11 +60,32 @@ const parseArgs = (args) => {
     }
 
     const ext = path.extname(args[1]) || '.hack';
-    const isDir = fs.lstatSync(args[1]).isDirectory();
-    const exists = isDir && fs.existsSync(args[1]);
-    if (isDir && !exists) { throw new Error('Output directory does not exist'); }
-
-    return path.resolve(path.dirname(args[1]), path.basename(args[1], '.asm'), ext);
+    const dirname = path.dirname(args[1]);
+    const basename = path.basename(args[1], ext);
+    const exists = fs.existsSync(args[1]);
+    const isDir = exists && fs.lstatSync(args[1]).isDirectory();
+    if (exists && !isDir) {
+      // if it's an existing file, overwrite it
+      return path.resolve(`${dirname}/${basename}${ext}`);
+    } else if (exists && isDir) {
+      // if the arg specifies a directory, create the file
+      // in that directory with the same name as the input
+      // file and .hack extension.
+      const inName = path.basename(inPath, '.asm');
+      return path.resolve(`./${basename}/${inName}${ext}`);
+    } else if (!exists && args[1].includes('.')){
+      // if the arg specifies a file that doesn't exist and
+      // it contains a '.' create the file in the current
+      // directory with the specified name and extension.
+      return path.resolve(`${dirname}/${basename}${ext}`);
+    } else {
+      // if the arg points to a dir (no '.') that doesn't
+      // exist we should create it but since I happen to
+      // know (or think I know anyway) that node doesn't
+      // have a convenient equivalent to mkdir -p, I'm just
+      // going to throw an error.
+      throw new Error('invalid output path');
+    }
   })();
 
   return {
@@ -86,7 +109,6 @@ const assemble = (filePath) => {
   const parsed = parse(asm, symbolTable);
   const symPath = `${outPath}.sym`;
   if (writeSymbols) fs.writeFileSync(symPath, symbolTable.print());
-  const outName = `${outPath}/${path.basename(filePath, '.asm')}.hack`;
   fs.writeFileSync(outPath, parsed);
 };
 
