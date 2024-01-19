@@ -82,7 +82,6 @@ module.exports = (lines, symbols) => {
     }
   };
 
-
   return lines
     .map(parseLine)
     .filter((line) => line !== false) // filter out labels
